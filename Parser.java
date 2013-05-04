@@ -155,7 +155,7 @@ public class Parser {
 		try{	
 			//Get global arff file for training and test data
 			source = new DataSource(directory + "/arff/reut2-all.arff");
-			data = source.getDataSet();
+			//data = source.getDataSet();
 			//Get training data
 			source = new DataSource(directory + "/arff/reut2-train.arff");
 			trainingData = source.getDataSet();

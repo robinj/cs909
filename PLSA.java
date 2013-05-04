@@ -20,7 +20,7 @@ public class PLSA implements CustomModel {
 	private Remove rm;
 	private FilteredClassifier fc;
 	private int noOfClasses;
-	
+		
 	public PLSA() {
 	
 		//LSA specific constructors
@@ -38,9 +38,6 @@ public class PLSA implements CustomModel {
 	public void runFilteredClassifier(Instances data, Instances test, Classifier classifier, String cName) {
 	
 		//data is what is given to the lsa evaluator.
-		
-		//Apply LSA evaluator options
-		String[] lsaoptions = {"-A", "-1","-R","0"};
 		
 		//Cross validation fold and random seed
 		int folds = 5;
@@ -61,23 +58,17 @@ public class PLSA implements CustomModel {
 				//**Apply StringToWordVector filter**
 				removedData.setClassIndex(1);
 				this.fc.setFilter(this.swv);
-				System.out.println("(STWFilter): Appled StringToWordVector");
+				System.out.println("(STWFilter): Applied StringToWordVector");
 				
-				/*
+			
+				System.out.println("before convert");
+				StringToWordVector stwv = convert(removedData);
+				System.out.println("before Filter");
+				removedData = Filter.useFilter(removedData,stwv);
+				System.out.println("before LSA");
+				removedData = performLSA(removedData);
 				
-				
-				
-				//Run LSA Stuff here?
-				
-				//lsa.setOptions(lsaoptions);
-            	//lsa.buildEvaluator(data);
-            	//ranker.search(lsa, lsa.transformedData(data));
-				
-				
-				
-				*/
-				
-				
+				System.out.println("before buildClassifier");
 				//**Build classifier on filtered data**
 				this.fc.buildClassifier(removedData);
 			
@@ -94,25 +85,46 @@ public class PLSA implements CustomModel {
 			err.printStackTrace(System.out);
 		
 		}
-		
-	
 	}
 	
-	public void performLSA(List<ReutersDocument> collection) {
+	public StringToWordVector convert(Instances data) {		
+	
+		String[] options = {"-C", "-T", "-L"};
+    	StringToWordVector stwv = new StringToWordVector();
+    	try {
+    		stwv.setOutputWordCounts(true);
+    	    stwv.setOptions(options);
+    	    stwv.setInputFormat(data);    
+    	}
+    	catch(Exception e) {
+    	    System.out.println(e);
+    	}
+    	
+    	return stwv;
+	}
+	
+	public Instances performLSA(Instances data) {
 
-		/*String[] lsaoptions = {"-A", "-1","-R","0"};
+		//Apply LSA evaluator options
+		String[] lsaoptions = {"-A", "-1","-R","0"};
 		
 		try 
-        {
-            //lsa.setOptions(lsaoptions);
-            //lsa.buildEvaluator(collection.get(0));
-            //ranker.search(lsa, lsa.transformedData(collection.get(0)));
-            
+        {   
+            lsa.setOptions(lsaoptions);
+            System.out.println("Options set");
+            data.setClassIndex(1);
+            System.out.println("Class index set");
+            lsa.buildEvaluator(data);
+            System.out.println("Evaluator built");
+            ranker.search(lsa, lsa.transformedData(data));
+            System.out.println("ranker search done");
         }
         catch(Exception e)
         {
             System.out.println(e);
-        }*/
+        }
+        
+        return data;
 	}
 	
 	//deprecated but interface still contains it so safer to leave for now
