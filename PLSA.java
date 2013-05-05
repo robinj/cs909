@@ -19,6 +19,21 @@ public class PLSA implements CustomModel {
 	private StringToWordVector swv;
 	private Remove rm;
 	private FilteredClassifier fc;
+	
+	private double averagedIncorrectPct;
+	private double averagedIncorrect;
+	private double averagedCorrectPct;
+	private double averagedCorrect;
+	private double averagedRMSE;
+	
+	private MultiFilter mf;
+	private AttributeSelection as; 
+	private Reorder ro; 
+	private Reorder rro;
+	private InfoGainAttributeEval igae;
+	private Ranker rkr; 
+	
+	private double noOfInstances;
 	private int noOfClasses;
 		
 	public PLSA() {
