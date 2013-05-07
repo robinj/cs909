@@ -24,14 +24,7 @@ public class PLSA implements CustomModel {
 	private double averagedIncorrect;
 	private double averagedCorrectPct;
 	private double averagedCorrect;
-	private double averagedRMSE;
-	
-	private MultiFilter mf;
-	private AttributeSelection as; 
-	private Reorder ro; 
-	private Reorder rro;
-	private InfoGainAttributeEval igae;
-	private Ranker rkr; 
+	private double averagedRMSE; 
 	
 	private double noOfInstances;
 	private int noOfClasses;
@@ -73,18 +66,27 @@ public class PLSA implements CustomModel {
 				//**Apply StringToWordVector filter**
 				removedData.setClassIndex(1);
 				this.fc.setFilter(this.swv);
+				this.fc.setClassifier(classifier);
 				System.out.println("(STWFilter): Applied StringToWordVector");
 				
 			
 				System.out.println("before convert");
-				StringToWordVector stwv = convert(removedData);
+				String[] options = {"-C", "-T", "-L"};
+    			StringToWordVector stwv = new StringToWordVector();
+    			try {
+    				stwv.setOutputWordCounts(true);
+    	    		stwv.setOptions(options);
+    	    		stwv.setInputFormat(removedData);    
+    			}
+    			catch(Exception e) {
+    	    		System.out.println(e);
+    			}
 				System.out.println("before Filter");
 				removedData = Filter.useFilter(removedData,stwv);
 				System.out.println("before LSA");
 				removedData = performLSA(removedData);
 				
 				System.out.println("before buildClassifier");
-				//**Build classifier on filtered data**
 				this.fc.buildClassifier(removedData);
 			
 				//**Run Classifier**
@@ -92,6 +94,8 @@ public class PLSA implements CustomModel {
 				Evaluation eval = new Evaluation(removedData);
 				//eval.evaluateModel(this.fc, removedData);
 				eval.crossValidateModel(this.fc, removedData, folds, rand);
+				System.out.println(eval.toSummaryString());
+
 				
 			}
 			
@@ -121,25 +125,29 @@ public class PLSA implements CustomModel {
 	public Instances performLSA(Instances data) {
 
 		//Apply LSA evaluator options
-		String[] lsaoptions = {"-A", "-1","-R","0"};
+		String[] lsaoptions = {"-N","-A", "-1","-R","0.95"};
+		String[] rankeroptions = {"-T -1.7976931348623157E308","-N 750"};
 		
 		try 
         {   
             lsa.setOptions(lsaoptions);
             System.out.println("Options set");
-            data.setClassIndex(1);
+            data.setClassIndex(0);
             System.out.println("Class index set");
             lsa.buildEvaluator(data);
             System.out.println("Evaluator built");
+            ranker.setOptions(rankeroptions);
             ranker.search(lsa, lsa.transformedData(data));
             System.out.println("ranker search done");
+            return lsa.transformedData(data);
         }
         catch(Exception e)
         {
             System.out.println(e);
         }
-        
-        return data;
+    
+    	return null;
+    
 	}
 	
 	//deprecated but interface still contains it so safer to leave for now
