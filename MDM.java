@@ -43,7 +43,7 @@ public class MDM implements CustomModel {
 	private double noOfInstances;
 	private int noOfClasses;
 	
-	public MDM (){
+	public MDM (int classID){
 	
 		this.swv = new StringToWordVector(); 
 		this.rm = new Remove();
@@ -59,7 +59,7 @@ public class MDM implements CustomModel {
 		this.noOfClasses = 75;
 		
 	}
-	
+	public void run() {}
 	public void runFilteredClassifier(Instances data, Instances test, Classifier classifier, String cName) {
 
 		//Apply StringToWordVector TFIDF Option
@@ -230,6 +230,9 @@ public class MDM implements CustomModel {
 	}
 	
 	
+	public boolean isComplete() {
+		return false; 
+	}
 	
 	
 	/*

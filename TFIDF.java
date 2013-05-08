@@ -23,7 +23,7 @@ import weka.classifiers.functions.LibSVM;
   - Uses FilteredClassifier
 */
 
-public class TFIDF implements CustomModel {
+public class TFIDF extends Thread implements CustomModel {
 	
 	private StringToWordVector swv; 
 	private Remove rm;
@@ -44,8 +44,20 @@ public class TFIDF implements CustomModel {
 	private double noOfInstances;
 	private int noOfClasses;
 	
-	public TFIDF (){
+	private boolean complete; 
+	private int classID; 
 	
+	private Instances data; 
+	private Instances test; 
+	private Classifier classifier; 
+	private String cName; 
+	
+	private Coordinator coord; 
+	private DataCollector datacollect; 
+	
+	public TFIDF (int classID){
+		this.complete = false; 
+		
 		this.swv = new StringToWordVector(); 
 		this.rm = new Remove();
 		this.fc = new FilteredClassifier();
@@ -55,14 +67,26 @@ public class TFIDF implements CustomModel {
 		this.rro = new Reorder(); 
 		this.igae = new InfoGainAttributeEval();
 		this.rkr = new Ranker(); 
-		this.mf = new MultiFilter(); 
-		
+		this.mf = new MultiFilter();
+
+		this.classID = classID; 		
 		this.noOfClasses = 75;
 		
 	}
 	
 	public void runFilteredClassifier(Instances data, Instances test, Classifier classifier, String cName) {
-
+		this.data = data;
+		this.test = test;
+		this.classifier = classifier; 
+		this.cName = cName; 
+	}
+	
+	public void setMonitors(Coordinator co, DataCollector dc) {
+		this.datacollect = dc; 
+		this.coord = co; 
+	}
+	
+	public synchronized void run(){
 		//Apply StringToWordVector TFIDF Option
 		String swvoptions[] = {"-W 2000", "-I", "-L", "-M 1"};
 		
@@ -95,70 +119,56 @@ public class TFIDF implements CustomModel {
 		int folds = 5;
 		Random rand = new Random(1);
 		
-		try {
+		try {	
+			//Set input format and options for sw and filteredclassifier
+			this.swv.setInputFormat(data);
+			this.swv.setOptions(swvoptions);
+			this.fc.setClassifier(classifier);
 			
-			for (int i = 1; i < this.noOfClasses; i++) {
-		
-				System.out.println("(RemoveFilter): Selected class attribute " + i);
-		
-				//Set input format and options for sw and filteredclassifier
-				this.swv.setInputFormat(data);
-				this.swv.setOptions(swvoptions);
-				this.fc.setClassifier(classifier);
-				
-				//set input format for Reorder 
-				this.ro.setInputFormat(data);
-				this.ro.setOptions(roOptions);
-				
-				//set input format for Reorder
-				this.rro.setInputFormat(data);
-				this.rro.setOptions(rroOptions);
-				
-				//seet input format for Ranker
-				this.rkr.setOptions(rkrOptions);
-				
-				//set input format for AttributeSelection
-				//this.as.setInputFormat(data);
-				//this.as.setOptions(asOptions);
-				this.as.setEvaluator(igae);
-				this.as.setSearch(rkr); 
-				
-				//Remove all attribute classes
-				this.rm.setAttributeIndicesArray(new int[] {0,i});
-				this.rm.setInvertSelection(true);
-				this.rm.setInputFormat(data);
-				Instances removedData = Filter.useFilter(data, this.rm);
-				
-				//set all of the options for the MultiFilter
-				Filter[] filters = {this.swv, this.ro, this.as, this.rro};
-				this.mf.setFilters(filters);
-				
-				//Apply StringToWordVector filter
-				removedData.setClassIndex(1);
-				this.fc.setFilter(this.mf);
-				System.out.println("(STWFilter): Appled StringToWordVector");
-				
-				//Build classifier on filtered data
-				this.fc.buildClassifier(removedData);
+			//set input format for Reorder 
+			this.ro.setInputFormat(data);
+			this.ro.setOptions(roOptions);
 			
-				//Present results and store averages
-				System.out.println("(TFIDFModel): Running evaluation of " + cName + " on TFIDF Model");
-				Evaluation eval = new Evaluation(removedData);
-				//eval.evaluateModel(this.fc, removedData);
-				eval.crossValidateModel(this.fc, removedData, folds, rand);
-				
-				averagedCorrect = averagedCorrect + (eval.correct());
-				averagedCorrectPct = averagedCorrectPct + eval.pctCorrect();
-				averagedIncorrect = averagedIncorrect + (eval.incorrect());
-				averagedIncorrectPct = averagedIncorrectPct + eval.pctIncorrect();
-				averagedRMSE = averagedRMSE + eval.rootMeanSquaredError();
-				
-				System.out.println("Correctly Classified: " + (eval.correct()) + " (" + eval.pctCorrect() + "%)");
-				System.out.println("Incorrectly Classified: " + (eval.incorrect()) + " (" + eval.pctIncorrect() + "%)");
-				System.out.println("RMSE: " + eval.rootMeanSquaredError());
-				
-				System.out.println();
-			}
+			//set input format for Reorder
+			this.rro.setInputFormat(data);
+			this.rro.setOptions(rroOptions);
+			
+			//seet input format for Ranker
+			this.rkr.setOptions(rkrOptions);
+			
+			//set input format for AttributeSelection
+			//this.as.setInputFormat(data);
+			//this.as.setOptions(asOptions);
+			this.as.setEvaluator(igae);
+			this.as.setSearch(rkr); 
+			
+			//Remove all attribute classes
+			this.rm.setAttributeIndicesArray(new int[] {0,classID});
+			this.rm.setInvertSelection(true);
+			this.rm.setInputFormat(data);
+			Instances removedData = Filter.useFilter(data, this.rm);
+			
+			//set all of the options for the MultiFilter
+			Filter[] filters = {this.swv, this.ro, this.as, this.rro};
+			this.mf.setFilters(filters);
+			
+			//Apply StringToWordVector filter
+			removedData.setClassIndex(1);
+			this.fc.setFilter(this.mf);
+			System.out.println("(STWFilter): Appled StringToWordVector");
+			
+			//Build classifier on filtered data
+			this.fc.buildClassifier(removedData);
+		
+			//Present results and store averages
+			System.out.println("(TFIDFModel): Running evaluation of " + cName + " on TFIDF Model");
+			Evaluation eval = new Evaluation(removedData);
+			//eval.evaluateModel(this.fc, removedData);
+			eval.crossValidateModel(this.fc, removedData, folds, rand);
+			
+			//give data to the datacollector 
+			datacollect.addCorrect(eval.correct());
+			datacollect.addIncorrect(eval.incorrect());
 			
 		} catch (Exception err) {
 		
@@ -166,23 +176,18 @@ public class TFIDF implements CustomModel {
 		
 		}
 		
-		//Average statistics
-		averagedRMSE = averagedRMSE/ this.noOfClasses;
-		averagedCorrect = averagedCorrect / this.noOfClasses;
-		averagedCorrectPct = averagedCorrectPct / this.noOfClasses;
-		averagedIncorrect = averagedIncorrect/ this.noOfClasses;
-		averagedIncorrectPct = averagedIncorrectPct / this.noOfClasses;
+		//tell the coordinator that this thread's work is done 
+		coord.endWorker();
 		
-		//Print out terminal results
-		System.out.println("(TFIDFModel): Final results with " + classifier + ". Average per all possible class attributes:");
-		System.out.println("Correctly Classified: " + averagedCorrect +" (" + averagedCorrectPct + "%)");
-		System.out.println("Incorrectly Classified: " + averagedIncorrect + " (" + averagedIncorrectPct + "%)");
-		System.out.println("RMSE: " + averagedRMSE);
-	
-		
+		synchronized(datacollect){
+			datacollect.notifyAll();
+		}
 	}
 	
 	
+	public boolean isComplete() {
+		return complete; 
+	}
 	
 	
 	/*

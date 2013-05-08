@@ -12,6 +12,10 @@ class Coordinator {
 		this.cores = Runtime.getRuntime().availableProcessors();
 	}
 	
+	public synchronized boolean isWorking() {
+		return this.workers!=0; 
+	}
+	
 	public int getCores() {
 		return this.cores; 
 	}

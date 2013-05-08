@@ -46,7 +46,8 @@ public class MBDM implements CustomModel {
 	private double noOfInstances;
 	private int noOfClasses;
 	
-	public MBDM (){
+	
+	public MBDM (int classID){
 	
 		this.swv = new StringToWordVector(); 
 		this.rm = new Remove();
@@ -184,10 +185,14 @@ public class MBDM implements CustomModel {
 		System.out.println("Correctly Classified: " + averagedCorrect +" (" + averagedCorrectPct + "%)");
 		System.out.println("Incorrectly Classified: " + averagedIncorrect + " (" + averagedIncorrectPct + "%)");
 		System.out.println("RMSE: " + averagedRMSE);
-		
-	
+
 		
 	}
+	
+	public boolean isComplete() {
+		return false; 
+	}
+	
 	
 	
 	
@@ -239,6 +244,8 @@ public class MBDM implements CustomModel {
 		return wordVectors;
 		
 	}
+	
+	public void run() {}
 	
 	
 

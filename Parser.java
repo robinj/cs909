@@ -80,19 +80,19 @@ public class Parser {
 		} else {
 			switch(Integer.parseInt(args[0])) {
 				case 1: 
-					model = new MDM(); 
+					//model = new MDM(); 
 					break; 
 				case 2: 
-					model = new PLSA();
+					//model = new PLSA();
 					break; 
 				case 3:
-					model = new TFIDF();
+					//model = new TFIDF();
 					break; 
 				case 4: 
-					model = new MBDM();
+					//model = new MBDM();
 					break; 
 				default: 
-					//model = new SWM();
+					//model = new SWM(); (delete this)
 					break;
 			}
 		
@@ -173,7 +173,10 @@ public class Parser {
 		
 		//run the filtered classifier depending on the instantiated model
 		System.out.println("(Parser): Running training data with classifier " + classifierName);
-		model.runFilteredClassifier(trainingData, testData, classifier, classifierName);	
+		//model.runFilteredClassifier(trainingData, testData, classifier, classifierName);
+		
+		Threader t = new Threader(trainingData, testData, classifier, classifierName);
+		t.execute();
 
 
 	}

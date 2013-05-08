@@ -29,7 +29,8 @@ public class PLSA implements CustomModel {
 	private double noOfInstances;
 	private int noOfClasses;
 		
-	public PLSA() {
+		
+	public PLSA(int classID) {
 	
 		//LSA specific constructors
 		this.lsa = new LatentSemanticAnalysis();
@@ -91,7 +92,7 @@ public class PLSA implements CustomModel {
 				
 				this.fc.buildClassifier(removedData);
 
-			/* FILTER TEST DATA AND RUN CLASSIFIER ON TEST SET */
+				/* FILTER TEST DATA AND RUN CLASSIFIER ON TEST SET */
 				
 				//**Apply StringToWordVector filter**
 				//**Remove all attribute classes not relevant this pass**
@@ -181,6 +182,12 @@ public class PLSA implements CustomModel {
     
 	}
 	
+	public boolean isComplete() {
+		return false; 
+	}
+	
 	//deprecated but interface still contains it so safer to leave for now
 	public Instances[] runModel(Instances data, Instances data2) { return null; }
-}
+public void run() {}
+	}
+
