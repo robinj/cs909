@@ -58,8 +58,8 @@ public class PLSA implements CustomModel {
 				//**Remove all attribute classes not relevant this pass**
 				this.rm.setAttributeIndicesArray(new int[] {0,i});
 				this.rm.setInvertSelection(true);
-				this.rm.setInputFormat(data);
-				Instances removedData = Filter.useFilter(data, this.rm);
+				this.rm.setInputFormat(test);
+				Instances removedData = Filter.useFilter(test, this.rm);
 				
 				//**Apply StringToWordVector filter**
 				removedData.setClassIndex(1);
@@ -86,8 +86,8 @@ public class PLSA implements CustomModel {
 				//**Run Classifier**
 				System.out.println("(TFIDFModel): Running evaluation of " + cName + " on TFIDF Model");
 				Evaluation eval = new Evaluation(removedData);
-				//eval.evaluateModel(this.fc, removedData);
-				eval.crossValidateModel(this.fc, removedData, folds, rand);
+				eval.evaluateModel(this.fc, removedData);
+				//eval.crossValidateModel(this.fc, removedData, folds, rand);
 				
 				averagedCorrect = averagedCorrect + eval.correct();
 				averagedCorrectPct = averagedCorrectPct + eval.pctCorrect();
