@@ -67,7 +67,7 @@ class Threader {
 			}
 			
 			//create a new model (for the specific attribute class)
-			TFIDF model = new TFIDF(i);
+			PLSA model = new PLSA(i);
 			//set some parameters
 			model.runFilteredClassifier(data,  test,  classifier,  cName);
 			//set the monitors (needed for threading)
