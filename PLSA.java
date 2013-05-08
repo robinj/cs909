@@ -157,7 +157,7 @@ public class PLSA implements CustomModel {
 	public Instances performLSA(Instances data) {
 
 		//Apply LSA evaluator options
-		String[] lsaoptions = {"-N","-A", "-1","-R","10"};
+		String[] lsaoptions = {"-N","-A", "-1","-R","750"};
 		String[] rankeroptions = {"-T -1.7976931348623157E308","-N 750"};
 		
 		try 
