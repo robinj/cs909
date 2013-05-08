@@ -53,21 +53,27 @@ public class PLSA implements CustomModel {
 			
 			for (int i = 1; i < this.noOfClasses; i++) {
 		
+			/* FILTER TRAINING DATA AND BUILD CLASSIFIER */
+
 				System.out.println("(RemoveFilter): Selected class attribute " + i);
 		
 				//**Remove all attribute classes not relevant this pass**
+				
 				this.rm.setAttributeIndicesArray(new int[] {0,i});
 				this.rm.setInvertSelection(true);
-				this.rm.setInputFormat(test);
-				Instances removedData = Filter.useFilter(test, this.rm);
+				this.rm.setInputFormat(data);
+				Instances removedData = Filter.useFilter(data, this.rm);
 				
 				//**Apply StringToWordVector filter**
+				
 				removedData.setClassIndex(1);
 				this.fc.setFilter(this.swv);
 				this.fc.setClassifier(classifier);
 				System.out.println("(STWFilter): Applied StringToWordVector");
 				String[] options = {"-C", "-T", "-L"};
     				StringToWordVector stwv = new StringToWordVector();
+
+				//**Set string to word vector options**
 
     				try {
     					stwv.setOutputWordCounts(true);
@@ -78,16 +84,52 @@ public class PLSA implements CustomModel {
     	    				System.out.println(e);
     				}
 				
+				//**Perform LSA on removed training data**
+
 				removedData = Filter.useFilter(removedData,stwv);
 				removedData = performLSA(removedData);
 				
 				this.fc.buildClassifier(removedData);
-			
+
+			/* FILTER TEST DATA AND RUN CLASSIFIER ON TEST SET */
+				
+				//**Apply StringToWordVector filter**
+				//**Remove all attribute classes not relevant this pass**
+
+                                this.rm.setAttributeIndicesArray(new int[] {0,i});
+                                this.rm.setInvertSelection(true);
+                                this.rm.setInputFormat(test);
+                                Instances removedTestData = Filter.useFilter(test, this.rm);
+
+                                removedData.setClassIndex(1);
+                                this.fc.setFilter(this.swv);
+				this.fc.setClassifier(classifier);
+				System.out.println("(STWFilter): Applied StringToWordVector");
+                                String[] optionsTest = {"-C", "-T", "-L"};
+                                StringToWordVector stwvTest = new StringToWordVector();
+
+                                //**Set	string to word vector options**
+
+                                try {
+                                     	stwv.setOutputWordCounts(true);
+                                        stwv.setOptions(optionsTest);
+                                        stwv.setInputFormat(removedTestData);
+                                }
+                                catch(Exception e) {
+                                        System.out.println(e);
+                                }
+
+                                //**Perform LSA	on removed training data**
+
+                                removedTestData = Filter.useFilter(removedTestData,stwv);
+                                removedTestData = performLSA(removedTestData);
+
+
 				//**Run Classifier**
-				System.out.println("(TFIDFModel): Running evaluation of " + cName + " on TFIDF Model");
-				Evaluation eval = new Evaluation(removedData);
-				eval.evaluateModel(this.fc, removedData);
-				//eval.crossValidateModel(this.fc, removedData, folds, rand);
+				System.out.println("(PLSAModel): Running evaluation of " + cName + " on PLSA Model");
+				Evaluation eval = new Evaluation(removedTestData);
+				eval.evaluateModel(this.fc, removedTestData);
+				//eval.crossValidateModel(this.fc, removedTestData, folds, rand);
 				
 				averagedCorrect = averagedCorrect + eval.correct();
 				averagedCorrectPct = averagedCorrectPct + eval.pctCorrect();
