@@ -187,7 +187,7 @@ public class PLSA extends Thread implements CustomModel {
 
 		//Apply LSA evaluator options
 		String[] lsaoptions = {"-N","-A", "-1","-R","750"};
-		String[] rankeroptions = {"-T -1.7976931348623157E308","-N 750"};
+		String[] rankeroptions = {"-T -1.7976931348623157E308","-N 250"};
 		
 		try 
         	{   
